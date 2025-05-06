@@ -1,0 +1,147 @@
+# Example of how to define resources in a declarative way
+# This allows developers to simply fill in values for predefined templates
+
+# Dashboards
+dashboards = {
+  # Service dashboard example
+  service_overview = {
+    title       = "Service Overview Dashboard"
+    description = "Key metrics for our service"
+    
+    widgets = [
+      {
+        definition_type = "timeseries"
+        title = "Service Latency"
+        request = {
+          query = "avg:service.latency{env:prod} by {service}"
+          display_type = "line"
+        }
+        markers = [
+          {
+            display_type = "error dashed"
+            value = "200"
+            label = "SLA Threshold"
+          }
+        ]
+      },
+      {
+        definition_type = "timeseries"
+        title = "Error Rate"
+        request = {
+          query = "sum:service.errors{env:prod}.as_rate() / sum:service.requests{env:prod}.as_rate() * 100"
+          display_type = "area"
+        }
+      },
+      {
+        definition_type = "toplist"
+        title = "Top Endpoints by Request Count"
+        request = {
+          query = "top(sum:service.requests{env:prod} by {endpoint}.as_count(), 10, 'sum', 'desc')"
+        }
+      }
+    ]
+    
+    tags = ["service:api"]
+  },
+  
+  # Infrastructure dashboard example
+  infrastructure = {
+    title       = "Infrastructure Overview"
+    description = "System-level metrics for our infrastructure"
+    
+    widgets = [
+      {
+        definition_type = "timeseries"
+        title = "CPU Usage"
+        request = {
+          query = "avg:system.cpu.user{env:prod} by {host}"
+          display_type = "line"
+        }
+      },
+      {
+        definition_type = "timeseries"
+        title = "Memory Usage"
+        request = {
+          query = "avg:system.mem.used{env:prod} by {host}"
+          display_type = "line"
+        }
+      }
+    ]
+    
+    tags = ["component:infrastructure"]
+  }
+}
+
+# Monitors
+monitors = {
+  # Latency monitor example
+  api_latency = {
+    name    = "High API Latency"
+    type    = "metric alert"
+    message = <<-EOT
+      Service latency is above threshold.
+      
+      ## Impact
+      This could indicate performance issues affecting user experience.
+      
+      ## Investigation
+      - Check for recent deployments
+      - Look for increased traffic patterns
+      - Verify database performance
+      
+      @slack-ops-alerts
+    EOT
+    
+    query   = "avg(last_5m):avg:service.latency{env:prod,service:api} > 200"
+    
+    thresholds = {
+      critical          = "200"
+      critical_recovery = "150"
+      warning           = "150"
+      warning_recovery  = "100"
+    }
+    
+    notify_no_data = true
+    renotify_interval = 30
+    escalation_message = "Service latency is still above threshold after 30 minutes. Please escalate! @pagerduty"
+    
+    tags = ["service:api"]
+  },
+  
+  # Error rate monitor example
+  error_rate = {
+    name    = "High Error Rate"
+    type    = "metric alert"
+    message = "Error rate is above 1% for the service. @slack-ops-alerts"
+    query   = "sum(last_5m):sum:service.errors{env:prod}.as_rate() / sum:service.requests{env:prod}.as_rate() * 100 > 1"
+    
+    thresholds = {
+      critical          = "1"
+      critical_recovery = "0.5"
+    }
+    
+    tags = ["monitor:error-rate"]
+  }
+}
+
+# Log Monitors example (structure will depend on the module implementation)
+log_monitors = {
+  error_logs = {
+    name    = "Critical Error Logs"
+    query   = "logs(\"status:error AND @severity:critical\").index(\"main\").rollup(\"count\").last(\"5m\") > 5"
+    message = "Critical errors in logs detected. Please investigate. @slack-ops-alerts"
+    
+    tags = ["logs:critical"]
+  }
+}
+
+# APM Monitors example (structure will depend on the module implementation)
+apm_monitors = {
+  service_errors = {
+    name    = "Service Error Rate"
+    query   = "avg(last_5m):100 * sum:trace.servlet.request.errors{env:prod,service:web}.as_count() / sum:trace.servlet.request.hits{env:prod,service:web}.as_count() > 5"
+    message = "Error rate is too high. @slack-ops-alerts"
+    
+    tags = ["apm:errors"]
+  }
+}

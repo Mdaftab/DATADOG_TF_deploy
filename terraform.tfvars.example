@@ -1,0 +1,14 @@
+# Example tfvars file - Copy to terraform.tfvars and modify
+# Core Datadog credentials
+datadog_api_key = "your_api_key_here"
+datadog_app_key = "your_app_key_here"
+datadog_api_url = "https://api.datadoghq.com/"
+
+# Global tags to apply to all resources
+global_tags = {
+  managed_by = "terraform"
+  team       = "platform"
+}
+
+# Environment to deploy resources into
+environment = "prod"
