@@ -13,7 +13,7 @@ A developer-friendly Terraform project for deploying Datadog resources using YAM
 
 ## Project Structure
 
-```bash
+```shell
 project/
 ├── modules/                    # Terraform modules
 │   ├── monitors/              # Monitor module
@@ -54,7 +54,7 @@ graph LR
 
 1. **Install Dependencies**
 
-```bash
+```shell
 # Install required Python packages
 pip install click pyyaml
 
@@ -64,33 +64,33 @@ terraform init
 
 1. **Create Configuration**
 
-```bash
-# Generate an API monitoring template
-python scripts/datadog-tf-cli.py template monitor api-monitor.yaml
-```
+   ```shell
+   # Generate an API monitoring template
+   python scripts/datadog-tf-cli.py template monitor api-monitor.yaml
+   ```
 
-1. **Customize Settings**
+2. **Customize Settings**
 
-```yaml
-# api-monitor.yaml
-monitors:
-  api_latency:
-    name: "API Latency Monitor"
-    threshold: 1000
-    tags:
-      - "service:my-api"
-      - "env:prod"
-```
+   ```yaml
+   # api-monitor.yaml
+   monitors:
+     api_latency:
+       name: "API Latency Monitor"
+       threshold: 1000
+       tags:
+         - "service:my-api"
+         - "env:prod"
+   ```
 
-1. **Deploy Resources**
+3. **Deploy Resources**
 
-```bash
-# Preview changes
-python scripts/datadog-tf-cli.py plan api-monitor.yaml
+   ```shell
+   # Preview changes
+   python scripts/datadog-tf-cli.py plan api-monitor.yaml
 
-# Apply changes
-python scripts/datadog-tf-cli.py apply api-monitor.yaml
-```
+   # Apply changes
+   python scripts/datadog-tf-cli.py apply api-monitor.yaml
+   ```
 
 ## Available Templates
 
@@ -103,7 +103,7 @@ We provide templates for common monitoring scenarios:
 
 ## CLI Reference
 
-```bash
+```shell
 # Generate a template
 python scripts/datadog-tf-cli.py template <resource_type> <output_file>
 
@@ -117,27 +117,27 @@ python scripts/datadog-tf-cli.py plan <config_file>
 python scripts/datadog-tf-cli.py apply <config_file>
 ```
 
-## Best Practices
+## Project Guidelines
 
-### Naming Conventions
+### Resource Configuration
 
 - Use descriptive names
 - Follow a consistent naming convention
 - Include environment and service information
 
-### Resource Tags
+### Tag Standards
 
 - Always include service, environment, and team tags
 - Use consistent tag formats
 - Follow your organization's tagging policy
 
-### Monitoring Setup
+### Alert Management
 
 - Start with conservative thresholds
 - Adjust based on historical data
 - Include proper alert messages with clear actions
 
-### Version Control
+### Code Management
 
 - Version control your configurations
 - Review changes before applying
@@ -146,92 +146,98 @@ python scripts/datadog-tf-cli.py apply <config_file>
 ## Contributing
 
 1. Fork the repository
-1. Create a feature branch
-1. Make your changes
-1. Submit a pull request
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-## Support
+## Getting Help
 
 1. Check the examples directory
-1. Review the documentation
-1. Open an issue in the repository
+2. Review the documentation
+3. Open an issue in the repository
 
 ## License
 
 MIT License
 
-   ```
+## Configuration Examples
 
-2. **Dashboard Configuration**
-   ```yaml
-   dashboards:
-     <dashboard_name>:
-       title: "Dashboard Title"
-       description: "Dashboard Description"
-       widgets:
-         - type: "timeseries"
-           title: "CPU Usage"
-           query: "avg:system.cpu.user{service:my-app}"
-   ```
+### Dashboard Setup
 
-3. **SLO Configuration**
-   ```yaml
-   slos:
-     <slo_name>:
-       name: "Service Availability"
-       target: 99.9
-       timeframe: "30d"
-       tags:
-         - "service:my-app"
-   ```
+```yaml
+dashboards:
+  <dashboard_name>:
+    title: "Dashboard Title"
+    description: "Dashboard Description"
+    widgets:
+      - type: "timeseries"
+        title: "CPU Usage"
+        query: "avg:system.cpu.user{service:my-app}"
+```
 
-## For DevOps/SRE
+### SLO Setup
 
-### Module Management
+```yaml
+slos:
+  <slo_name>:
+    name: "Service Availability"
+    target: 99.9
+    timeframe: "30d"
+    tags:
+      - "service:my-app"
+```
 
-1. **Adding New Templates**
-   - Create new template in appropriate module
-   - Add validation rules in variables.tf
-   | Update documentation
-   - Add example configuration
+## Developer Guidelines
 
-2. **Best Practices**
-   - Use consistent naming conventions
-   - Include proper validation
-   - Add comprehensive documentation
-   - Include example configurations
+### Module Setup
 
-### Maintenance
+1. Create new template in appropriate module
+2. Add validation rules in variables.tf
+3. Update documentation
+4. Add example configuration
 
-1. **Regular Tasks**
+### Best Practices
+
+- Use consistent naming conventions
+- Include proper validation
+- Add comprehensive documentation
+- Include example configurations
+
+### Repository Tasks
+
+1. **Regular Updates**
    - Review and update templates
    - Update documentation
-   - Monitor resource usage
+   - Monitor for deprecated features
    - Review and update thresholds
 
-2. **Version Control**
-   - Use semantic versioning
-   - Maintain changelog
+2. **Repository Management**
+   - Regular commits
+   - Pull request reviews
+   - Release management
    - Tag releases
 
-## Best Practices
+## Resource Management
 
-1. **Configuration**
-   - Use meaningful names
-   - Include all required tags
-   - Set appropriate thresholds
-   - Document special requirements
+### Resource Definition
 
-2. **Resource Management**
-   - Follow naming conventions
-   - Use consistent tagging
-   - Set appropriate thresholds
-   - Include proper documentation
+- Use meaningful names
+- Include all required tags
+- Set appropriate thresholds
+- Document special requirements
 
-3. **Security**
-   - Use environment variables for secrets
-   - Follow least privilege principle
-   - Regular security reviews
+### Deployment Strategy
+
+- Follow naming conventions
+- Use consistent tagging
+- Set appropriate thresholds
+- Include proper documentation
+
+### Access Control
+
+- Use environment variables for secrets
+- Follow least privilege principle
+- Regular security reviews
 
 ## Contributing
 
@@ -242,13 +248,13 @@ MIT License
 
 ## Support
 
-For support, please [contact details or issue tracker information]
+For support, please [create an issue](https://github.com/yourusername/datadog-tf-deploy/issues)
 
 ## License
 
 MIT License
 
-Copyright (c) 2024 [Your Name or Organization]
+Copyright (c) 2024
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
