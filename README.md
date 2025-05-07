@@ -37,13 +37,17 @@ project/
 
 ```mermaid
 graph LR
-    A[Developer] -->|1. Create YAML Config| B[DevOps/SRE]
-    B -->|2. Review & Approve| A
-    A -->|3. Deploy Resources| B
-    B -->|4. Process YAML Config| C[Infrastructure]
-    C -->|5. Generate Terraform Config| B
-    B -->|6. Apply to Datadog| C
-    B -->|7. Deployment Complete| A
+    Dev[Developer] -->|1. Create YAML Config| Ops[DevOps/SRE]
+    Ops -->|2. Review & Approve| Dev
+    Dev -->|3. Deploy Resources| Ops
+    Ops -->|4. Process YAML| Infra[Infrastructure]
+    Infra -->|5. Generate TF| Ops
+    Ops -->|6. Apply Changes| Infra
+    Ops -->|7. Complete| Dev
+
+    classDef default fill:#2b2b2b,stroke:#666,color:#fff
+    classDef actor fill:#3b4252,stroke:#81a1c1,color:#fff
+    class Dev,Ops,Infra actor
 ```
 
 ## Getting Started
