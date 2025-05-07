@@ -1,0 +1,43 @@
+api_monitors:
+  latency:
+    name: "API Latency Monitor"
+    type: "metric alert"
+    query: "avg(last_5m):avg:trace.http.request.duration{service:YOUR_SERVICE} > 1000"
+    message: |
+      API latency is above threshold of 1000ms
+      @slack-your-channel @pagerduty-service
+    threshold: 1000
+    tags:
+      - "service:YOUR_SERVICE"
+      - "env:prod"
+      - "team:backend"
+    notification_channels:
+      - "@slack-your-channel"
+      - "@pagerduty-service"
+
+  error_rate:
+    name: "API Error Rate Monitor"
+    type: "metric alert"
+    query: "sum(last_5m):sum:trace.http.request.errors{service:YOUR_SERVICE}.as_count() / sum:trace.http.request.hits{service:YOUR_SERVICE}.as_count() * 100 > 5"
+    message: |
+      Error rate is above 5%
+      @slack-your-channel @pagerduty-service
+    threshold: 5
+    tags:
+      - "service:YOUR_SERVICE"
+      - "env:prod"
+      - "team:backend"
+
+dashboard:
+  title: "API Overview Dashboard"
+  description: "Overview of API performance metrics"
+  widgets:
+    - type: "timeseries"
+      title: "API Latency"
+      query: "avg:trace.http.request.duration{service:YOUR_SERVICE}"
+    - type: "timeseries"
+      title: "Error Rate"
+      query: "sum:trace.http.request.errors{service:YOUR_SERVICE}.as_count() / sum:trace.http.request.hits{service:YOUR_SERVICE}.as_count() * 100"
+    - type: "toplist"
+      title: "Slowest Endpoints"
+      query: "avg:trace.http.request.duration{service:YOUR_SERVICE} by {resource_name}"

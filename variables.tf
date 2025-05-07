@@ -1,29 +1,28 @@
 variable "datadog_api_key" {
-  type        = string
   description = "Datadog API key"
+  type        = string
   sensitive   = true
 }
 
 variable "datadog_app_key" {
-  type        = string
   description = "Datadog application key"
+  type        = string
   sensitive   = true
 }
 
 variable "datadog_api_url" {
-  type        = string
   description = "Datadog API URL"
+  type        = string
   default     = "https://api.datadoghq.com/"
 }
 
 variable "environment" {
+  description = "Environment to deploy resources into (prod, staging)"
   type        = string
-  description = "Environment to deploy resources into (dev, staging, prod)"
-  default     = "dev"
   
   validation {
-    condition     = contains(["dev", "staging", "prod"], var.environment)
-    error_message = "Environment must be one of: dev, staging, prod."
+    condition     = contains(["prod", "staging"], var.environment)
+    error_message = "Environment must be one of: prod, staging"
   }
 }
 

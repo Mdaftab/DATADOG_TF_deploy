@@ -1,0 +1,32 @@
+environment: prod
+application: my-app
+
+monitors:
+  - template: high-cpu
+    name: "My App CPU Usage"
+    threshold: 80
+    tags:
+      - "service:my-app"
+      - "team:backend"
+      - "priority:high"
+
+  - template: high-cpu
+    name: "My App CPU Usage (Staging)"
+    threshold: 90
+    environment: staging
+    tags:
+      - "service:my-app"
+      - "team:backend"
+      - "priority:medium"
+
+dashboards:
+  - template: system-overview
+    title: "My App System Dashboard"
+    description: "Overview of system metrics for My App"
+    metrics:
+      - "cpu.usage"
+      - "memory.usage"
+      - "disk.usage"
+    tags:
+      - "dashboard_type:system"
+      - "team:backend" 

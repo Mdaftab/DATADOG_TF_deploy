@@ -1,0 +1,56 @@
+database_monitors:
+  connection_pool:
+    name: "Database Connection Pool Monitor"
+    type: "metric alert"
+    query: "avg(last_5m):avg:database.pool.connections.usage{service:YOUR_DB} > 80"
+    message: |
+      Database connection pool usage is high (>80%)
+      @slack-your-channel @pagerduty-service
+    threshold: 80
+    tags:
+      - "service:YOUR_DB"
+      - "env:prod"
+      - "team:dba"
+
+  query_latency:
+    name: "Database Query Latency Monitor"
+    type: "metric alert"
+    query: "avg(last_5m):avg:database.query.duration{service:YOUR_DB} > 500"
+    message: |
+      Database query latency is above threshold
+      @slack-your-channel @pagerduty-service
+    threshold: 500
+    tags:
+      - "service:YOUR_DB"
+      - "env:prod"
+      - "team:dba"
+
+  disk_usage:
+    name: "Database Disk Usage Monitor"
+    type: "metric alert"
+    query: "avg(last_5m):avg:system.disk.used{service:YOUR_DB} / avg:system.disk.total{service:YOUR_DB} * 100 > 85"
+    message: |
+      Database disk usage is above 85%
+      @slack-your-channel @pagerduty-service
+    threshold: 85
+    tags:
+      - "service:YOUR_DB"
+      - "env:prod"
+      - "team:dba"
+
+dashboard:
+  title: "Database Overview Dashboard"
+  description: "Overview of database performance metrics"
+  widgets:
+    - type: "timeseries"
+      title: "Connection Pool Usage"
+      query: "avg:database.pool.connections.usage{service:YOUR_DB}"
+    - type: "timeseries"
+      title: "Query Latency"
+      query: "avg:database.query.duration{service:YOUR_DB}"
+    - type: "timeseries"
+      title: "Disk Usage"
+      query: "avg:system.disk.used{service:YOUR_DB} / avg:system.disk.total{service:YOUR_DB} * 100"
+    - type: "toplist"
+      title: "Slowest Queries"
+      query: "avg:database.query.duration{service:YOUR_DB} by {query_hash}"
