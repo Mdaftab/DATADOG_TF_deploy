@@ -1,0 +1,217 @@
+monitors:
+  service_latency:
+    name: "Microservice Latency Monitor"
+    type: "metric alert"
+    query: "avg(last_5m):avg:trace.http.request.duration{service:YOUR_SERVICE} > 500"
+    message: |
+      Microservice latency is above threshold of 500ms
+      
+      ## Details
+      - Service: {{service.name}}
+      - Environment: {{service.env}}
+      - Threshold: 500ms
+      - Current Value: {{value}}ms
+      
+      ## Actions
+      1. Check recent deployments
+      2. Verify database performance
+      3. Check dependent services
+      
+      @slack-your-channel @pagerduty-service
+    threshold: 500
+    tags:
+      - "service:YOUR_SERVICE"
+      - "env:prod"
+      - "team:backend"
+    notification_channels:
+      - "@slack-your-channel"
+      - "@pagerduty-service"
+
+  error_rate:
+    name: "Microservice Error Rate Monitor"
+    type: "metric alert"
+    query: "sum(last_5m):sum:trace.http.request.errors{service:YOUR_SERVICE}.as_count() / sum:trace.http.request.hits{service:YOUR_SERVICE}.as_count() * 100 > 2"
+    message: |
+      Error rate is above 2%
+      
+      ## Details
+      - Service: {{service.name}}
+      - Environment: {{service.env}}
+      - Threshold: 2%
+      - Current Value: {{value}}%
+      
+      ## Actions
+      1. Check error logs
+      2. Verify recent deployments
+      3. Check dependent services
+      
+      @slack-your-channel @pagerduty-service
+    threshold: 2
+    tags:
+      - "service:YOUR_SERVICE"
+      - "env:prod"
+      - "team:backend"
+
+  memory_usage:
+    name: "Microservice Memory Usage Monitor"
+    type: "metric alert"
+    query: "avg(last_5m):avg:docker.mem.rss{service:YOUR_SERVICE} / avg:docker.mem.limit{service:YOUR_SERVICE} * 100 > 85"
+    message: |
+      Memory usage is above 85%
+      
+      ## Details
+      - Service: {{service.name}}
+      - Environment: {{service.env}}
+      - Threshold: 85%
+      - Current Value: {{value}}%
+      
+      ## Actions
+      1. Check for memory leaks
+      2. Consider scaling up
+      3. Review recent code changes
+      
+      @slack-your-channel @pagerduty-service
+    threshold: 85
+    tags:
+      - "service:YOUR_SERVICE"
+      - "env:prod"
+      - "team:backend"
+
+  cpu_usage:
+    name: "Microservice CPU Usage Monitor"
+    type: "metric alert"
+    query: "avg(last_5m):avg:docker.cpu.usage{service:YOUR_SERVICE} > 80"
+    message: |
+      CPU usage is above 80%
+      
+      ## Details
+      - Service: {{service.name}}
+      - Environment: {{service.env}}
+      - Threshold: 80%
+      - Current Value: {{value}}%
+      
+      ## Actions
+      1. Check for CPU-intensive operations
+      2. Consider scaling up
+      3. Review recent code changes
+      
+      @slack-your-channel @pagerduty-service
+    threshold: 80
+    tags:
+      - "service:YOUR_SERVICE"
+      - "env:prod"
+      - "team:backend"
+
+  apdex_score:
+    name: "Microservice Apdex Score Monitor"
+    type: "metric alert"
+    query: "avg(last_5m):avg:trace.apdex{service:YOUR_SERVICE} < 0.8"
+    message: |
+      Apdex score is below 0.8
+      
+      ## Details
+      - Service: {{service.name}}
+      - Environment: {{service.env}}
+      - Threshold: 0.8
+      - Current Value: {{value}}
+      
+      ## Actions
+      1. Check for slow endpoints
+      2. Review recent performance changes
+      3. Consider optimizing critical paths
+      
+      @slack-your-channel @pagerduty-service
+    threshold: 0.8
+    tags:
+      - "service:YOUR_SERVICE"
+      - "env:prod"
+      - "team:backend"
+
+dashboards:
+  service_overview:
+    title: "Microservice Overview Dashboard"
+    description: "Overview of microservice performance metrics"
+    widgets:
+      - type: "timeseries"
+        title: "Request Latency"
+        query: "avg:trace.http.request.duration{service:YOUR_SERVICE}"
+      
+      - type: "timeseries"
+        title: "Error Rate"
+        query: "sum:trace.http.request.errors{service:YOUR_SERVICE}.as_count() / sum:trace.http.request.hits{service:YOUR_SERVICE}.as_count() * 100"
+      
+      - type: "timeseries"
+        title: "Memory Usage"
+        query: "avg:docker.mem.rss{service:YOUR_SERVICE} / avg:docker.mem.limit{service:YOUR_SERVICE} * 100"
+      
+      - type: "timeseries"
+        title: "CPU Usage"
+        query: "avg:docker.cpu.usage{service:YOUR_SERVICE}"
+      
+      - type: "toplist"
+        title: "Slowest Endpoints"
+        query: "avg:trace.http.request.duration{service:YOUR_SERVICE} by {resource_name}"
+      
+      - type: "query_value"
+        title: "Apdex Score"
+        query: "avg:trace.apdex{service:YOUR_SERVICE}"
+        precision: 2
+      
+      - type: "query_value"
+        title: "Requests per Second"
+        query: "sum:trace.http.request.hits{service:YOUR_SERVICE}.as_rate()"
+        precision: 2
+      
+      - type: "timeseries"
+        title: "HTTP Status Codes"
+        query: "sum:trace.http.request.hits{service:YOUR_SERVICE} by {http.status_code}.as_count()"
+
+slos:
+  service_availability:
+    name: "Microservice Availability"
+    type: "metric"
+    target: 99.9
+    timeframe: "30d"
+    query:
+      numerator: "sum:trace.http.request.hits{service:YOUR_SERVICE,http.status_code:2xx}.as_count()"
+      denominator: "sum:trace.http.request.hits{service:YOUR_SERVICE}.as_count()"
+    tags:
+      - "service:YOUR_SERVICE"
+      - "env:prod"
+      - "team:backend"
+  
+  service_latency:
+    name: "Microservice Latency SLO"
+    type: "metric"
+    target: 99.0
+    timeframe: "30d"
+    query:
+      numerator: "sum:trace.http.request.hits{service:YOUR_SERVICE,http.request.duration:<200}.as_count()"
+      denominator: "sum:trace.http.request.hits{service:YOUR_SERVICE}.as_count()"
+    tags:
+      - "service:YOUR_SERVICE"
+      - "env:prod"
+      - "team:backend"
+
+synthetics:
+  api_health_check:
+    name: "API Health Check"
+    type: "api"
+    request:
+      method: "GET"
+      url: "https://YOUR_SERVICE_URL/health"
+      timeout: 30
+    assertions:
+      - type: "statusCode"
+        operator: "is"
+        target: 200
+      - type: "responseTime"
+        operator: "lessThan"
+        target: 1000
+    locations:
+      - "aws:us-east-1"
+      - "aws:eu-west-1"
+    tags:
+      - "service:YOUR_SERVICE"
+      - "env:prod"
+      - "team:backend"

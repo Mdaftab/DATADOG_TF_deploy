@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 if [ $# -lt 1 ]; then
   echo -e "${RED}Error: Resource type is required.${NC}"
   echo -e "Usage: $0 <resource_type> <resource_name>"
-  echo -e "Available resource types: dashboard, monitor, log_monitor, apm_monitor, synthetic, slo"
+  echo -e "Available resource types: dashboard, monitor, synthetic, slo"
   exit 1
 fi
 
@@ -67,31 +67,6 @@ create_monitor() {
 EOF
 }
 
-# Function to create a log monitor resource
-create_log_monitor() {
-  cat << EOF
-  $RESOURCE_NAME = {
-    name    = "$RESOURCE_NAME Log Monitor"
-    query   = "logs(\"service:$RESOURCE_NAME status:error\").index(\"main\").rollup(\"count\").last(\"5m\") > 5"
-    message = "High number of error logs for $RESOURCE_NAME. @slack-alerts"
-    
-    tags = ["service:$RESOURCE_NAME"]
-  }
-EOF
-}
-
-# Function to create an APM monitor resource
-create_apm_monitor() {
-  cat << EOF
-  $RESOURCE_NAME = {
-    name    = "$RESOURCE_NAME APM Monitor"
-    query   = "avg(last_5m):trace.{service:$RESOURCE_NAME}.errors > 10"
-    message = "High error rate detected in $RESOURCE_NAME service. @slack-alerts"
-    
-    tags = ["service:$RESOURCE_NAME"]
-  }
-EOF
-}
 
 # Main logic
 echo -e "${BLUE}Creating a new $RESOURCE_TYPE resource named '$RESOURCE_NAME'...${NC}"
@@ -109,17 +84,9 @@ case $RESOURCE_TYPE in
     OUTPUT=$(create_monitor)
     VAR_NAME="monitors"
     ;;
-  log_monitor)
-    OUTPUT=$(create_log_monitor)
-    VAR_NAME="log_monitors"
-    ;;
-  apm_monitor)
-    OUTPUT=$(create_apm_monitor)
-    VAR_NAME="apm_monitors"
-    ;;
   *)
     echo -e "${RED}Error: Unsupported resource type '$RESOURCE_TYPE'.${NC}"
-    echo -e "Available resource types: dashboard, monitor, log_monitor, apm_monitor"
+    echo -e "Available resource types: dashboard, monitor, synthetic, slo"
     exit 1
     ;;
 esac

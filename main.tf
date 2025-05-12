@@ -36,26 +36,9 @@ module "slos" {
 }
 
 # Additional resource types can be added in a similar pattern
-# Log Monitors
-module "log_monitors" {
-  source   = "./modules/log_monitor"
-  for_each = var.log_monitors
-
-  # These would need to match the module's variables
-  # Common parameters here
-  
-  # Merge global tags with resource-specific tags
-  tags = concat(local.common_tags, lookup(each.value, "tags", []))
-}
-
-# APM Monitors
-module "apm_monitors" {
-  source   = "./modules/apm_monitor"
-  for_each = var.apm_monitors
-
-  # These would need to match the module's variables
-  # Common parameters here
-  
-  # Merge global tags with resource-specific tags
-  tags = concat(local.common_tags, lookup(each.value, "tags", []))
-}
+# Example of how to add more resource types:
+#
+# module "new_resource_type" {
+#   source   = "./modules/new_resource_type"
+#   resources = local.config.new_resource_type
+# }

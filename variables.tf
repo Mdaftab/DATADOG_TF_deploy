@@ -17,12 +17,12 @@ variable "datadog_api_url" {
 }
 
 variable "environment" {
-  description = "Environment to deploy resources into (prod, staging)"
+  description = "Environment to deploy resources into (prod, staging, dev)"
   type        = string
   
   validation {
-    condition     = contains(["prod", "staging"], var.environment)
-    error_message = "Environment must be one of: prod, staging"
+    condition     = contains(["prod", "staging", "dev"], var.environment)
+    error_message = "Environment must be one of: prod, staging, dev"
   }
 }
 
@@ -45,17 +45,6 @@ variable "monitors" {
   default     = {}
 }
 
-variable "log_monitors" {
-  type        = any
-  description = "Map of log monitors to create"
-  default     = {}
-}
-
-variable "apm_monitors" {
-  type        = any
-  description = "Map of APM monitors to create"
-  default     = {}
-}
 
 variable "host_maps" {
   type        = any
