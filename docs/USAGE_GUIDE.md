@@ -1,160 +1,152 @@
-# Datadog Terraform Deployment Guide
+# Datadog Terraform Deployment Usage Guide
 
-This guide explains how to use this repository to deploy Datadog resources using Terraform.
+This guide explains how to use the Datadog Terraform Deployment Skeleton project to deploy Datadog resources using Terraform.
 
 ## Prerequisites
 
-- Terraform ≥ 1.0.0
-- Datadog API and App keys
-- Proper IAM permissions to deploy resources
+-   Terraform ≥ 1.0.0
+-   Python 3.6+ (for the CLI tool)
+-   Datadog API and App keys with necessary permissions to create resources.
 
 ## Getting Started
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd DATADOG_TF_deploy
-   ```
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd DATADOG_TF_deploy
+    ```
 
-2. Create a `terraform.tfvars` file with your Datadog API credentials:
-   ```hcl
-   datadog_api_key = "your-api-key"
-   datadog_app_key = "your-app-key"
-   datadog_api_url = "https://api.datadoghq.com/" # or your specific Datadog site URL
-   ```
+2.  **Install Python dependencies:**
+    ```bash
+    pip install click pyyaml
+    ```
 
-3. Initialize Terraform:
-   ```bash
-   terraform init
-   ```
+3.  **Configure Datadog credentials:**
+    Copy the example variables file and add your Datadog API and App keys.
+    ```bash
+    cp terraform.tfvars.example terraform.tfvars
+    ```
+    Edit `terraform.tfvars`:
+    ```hcl
+    datadog_api_key = "your_api_key_here"
+    datadog_app_key = "your_app_key_here"
+    datadog_api_url = "https://api.datadoghq.com/" # Or your specific Datadog site URL
+    ```
+    **Note:** Do not commit `terraform.tfvars` with secrets to version control.
 
-## Deploying Resources
+4.  **Initialize Terraform:**
+    ```bash
+    terraform init
+    ```
 
-### Using Modules Directly
+## Defining and Deploying Resources
 
-You can use modules directly in your Terraform configuration:
+Resource configurations are defined in environment-specific `.tfvars` files located in the `environments/` directory.
 
-```hcl
-module "service_dashboard" {
-  source = "./modules/dashboard"
+1.  **Choose your environment:** Navigate to the `environments/` directory and select the `.tfvars` file for your target environment (e.g., `dev/terraform.tfvars`, `prod/terraform.tfvars`).
 
-  title       = "My Service Dashboard"
-  description = "Dashboard for my service"
-  
-  # Additional module-specific parameters
-}
-```
+2.  **Define your resources:** Edit the environment's `terraform.tfvars` file to define the Datadog resources you want to deploy. Use the variables provided by the modules in the `modules/` directory. Refer to the examples in `examples/` for guidance on the structure for defining monitors, dashboards, SLOs, etc.
 
-### Using Examples as Templates
+    Example structure within an environment's `terraform.tfvars`:
+    ```hcl
+    environment = "dev" # Or prod, staging
 
-Each module includes examples that you can copy and modify:
+    global_tags = {
+      managed_by = "terraform"
+      team       = "your-team"
+      env        = var.environment
+    }
 
-1. Copy an example directory:
-   ```bash
-   cp -r examples/dashboard my-dashboard
-   ```
+    monitors = {
+      # Define multiple monitors here using the 'multiple_monitors' module
+      my_service_cpu_alert = {
+        name      = "${var.environment}-my-service-high-cpu"
+        type      = "metric alert"
+        query     = "avg(last_5m):avg:system.cpu.user{service:my-service,env:${var.environment}} > 80"
+        message   = "High CPU usage for my-service in ${var.environment}. @slack-channel"
+        threshold = 80
+        tags      = ["service:my-service", "env:${var.environment}", "team:your-team"]
+      }
+      # Add more monitor definitions...
+    }
 
-2. Modify the variables and configurations in the copied directory:
-   ```bash
-   cd my-dashboard
-   # Edit variables.tf and main.tf to customize
-   ```
+    dashboards = {
+      # Define dashboards here using the 'dashboard' module
+      my_service_overview = {
+        title       = "${var.environment} - My Service Overview"
+        description = "Overview dashboard for my-service in ${var.environment}"
+        # ... dashboard widget definitions ...
+        tags = ["service:my-service", "env:${var.environment}", "team:your-team"]
+      }
+      # Add more dashboard definitions...
+    }
 
-3. Initialize and deploy:
-   ```bash
-   terraform init
-   terraform plan
-   terraform apply
-   ```
+    service_level_objectives = {
+      # Define SLOs here using the 'slos' module
+      my_service_availability = {
+        name      = "${var.environment} - My Service Availability SLO"
+        target    = 99.9
+        timeframe = "30d"
+        # ... SLO query definition ...
+        tags = ["service:my-service", "env:${var.environment}", "team:your-team"]
+      }
+      # Add more SLO definitions...
+    }
 
-## Developer Workflow
+    # Add definitions for other resource types (synthetics, etc.) as needed
+    ```
 
-The typical workflow for a developer to deploy a new Datadog resource is:
+3.  **Validate your configuration:**
+    ```bash
+    terraform validate -var-file=environments/dev/terraform.tfvars
+    ```
+    Replace `environments/dev/terraform.tfvars` with the path to your environment's tfvars file.
 
-1. Find the appropriate module for the resource type (dashboard, monitor, etc.)
-2. Copy the example for that module to a new directory
-3. Modify the variables to match your requirements
-4. Deploy using Terraform
+4.  **Preview changes (Terraform Plan):**
+    ```bash
+    terraform plan -var-file=environments/dev/terraform.tfvars
+    ```
+    Review the output to understand what resources will be created, updated, or deleted.
 
-## Using Environment-Specific Configurations
+5.  **Deploy resources (Terraform Apply):**
+    ```bash
+    terraform apply -var-file=environments/dev/terraform.tfvars
+    ```
+    Confirm the changes when prompted.
 
-For different environments (dev, staging, prod):
+## Using the CLI Tool
 
-1. Create environment-specific variable files:
-   ```bash
-   # dev.tfvars
-   environment = "dev"
-   team = "backend"
-   ```
+The `scripts/datadog-tf-cli.py` tool provides helper commands:
 
-2. Apply with the specific environment:
-   ```bash
-   terraform apply -var-file=dev.tfvars
-   ```
+-   **Generate a template:**
+    ```bash
+    python scripts/datadog-tf-cli.py template <resource_type> <output_file> [--template <specialized_template>]
+    # Example: Generate a basic monitor template
+    python scripts/datadog-tf-cli.py template monitor my-new-monitor.yaml
+    # Example: Generate a microservice monitoring template
+    python scripts/datadog-tf-cli.py template specialized microservice-config.yaml --template microservice-monitoring
+    ```
+    Use `python scripts/datadog-tf-cli.py list` to see available templates.
+
+-   **Validate a configuration file:**
+    ```bash
+    python scripts/datadog-tf-cli.py validate <config_file>
+    ```
+
+-   **Preview changes for a configuration file:**
+    ```bash
+    python scripts/datadog-tf-cli.py plan <config_file>
+    ```
+
+-   **Apply a configuration file:**
+    ```bash
+    python scripts/datadog-tf-cli.py apply <config_file> [--auto-approve]
+    ```
 
 ## Extending the Project
 
-To add support for a new Datadog resource type:
-
-1. Follow the guidelines in `docs/HOW_TO_CREATE_NEW_MODULE.md`
-2. Create a new module in the `modules/` directory
-3. Create examples in the `examples/` directory
-4. Update documentation as needed
+Refer to `docs/HOW_TO_CREATE_NEW_MODULE.md` for detailed instructions on adding support for new Datadog resource types by creating new Terraform modules.
 
 ## Best Practices
 
-1. **Use Tags Consistently**
-   ```hcl
-   tags = [
-     "team:${var.team}",
-     "service:${var.service_name}",
-     "env:${var.environment}"
-   ]
-   ```
-
-2. **Version Resources**
-   Consider adding a version tag to resources to track changes.
-
-3. **Document Resource Purpose**
-   Always include a meaningful description for each resource.
-
-4. **Use Variables for Repeated Values**
-   Extract common values like environment and team names to variables.
-
-5. **Follow Naming Conventions**
-   Use consistent naming patterns for all resources:
-   ```
-   [env]-[team]-[service]-[resource-type]
-   ```
-
-## Common Operations
-
-### Creating a New Dashboard
-
-```bash
-# Copy the example
-cp -r examples/dashboard my-new-dashboard
-
-# Customize the configuration
-cd my-new-dashboard
-# Edit main.tf and variables.tf
-
-# Deploy
-terraform init
-terraform apply
-```
-
-### Creating a New Monitor
-
-```bash
-# Copy the example
-cp -r examples/monitor my-new-monitor
-
-# Customize the configuration
-cd my-new-monitor
-# Edit main.tf and variables.tf
-
-# Deploy
-terraform init
-terraform apply
-```
+Consult the `.clinerules/datadog-terraform-best-practices.md` file for guidelines on naming, tagging, and other recommended practices.

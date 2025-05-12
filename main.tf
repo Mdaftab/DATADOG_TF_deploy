@@ -16,23 +16,19 @@ provider "datadog" {
   api_url = var.datadog_api_url
 }
 
-locals {
-  config = yamldecode(file("${path.module}/config/${var.environment}/resources.yaml"))
-}
-
-module "monitors" {
-  source   = "./modules/monitors"
-  monitors = local.config.monitors
+module "multiple_monitors" {
+  source   = "./modules/multiple_monitors"
+  monitors = var.monitors
 }
 
 module "dashboards" {
   source   = "./modules/dashboards"
-  dashboards = local.config.dashboards
+  dashboards = var.dashboards
 }
 
 module "slos" {
   source = "./modules/slos"
-  slos = local.config.slos
+  slos = var.service_level_objectives
 }
 
 # Additional resource types can be added in a similar pattern
@@ -40,5 +36,5 @@ module "slos" {
 #
 # module "new_resource_type" {
 #   source   = "./modules/new_resource_type"
-#   resources = local.config.new_resource_type
+#   resources = var.new_resource_type
 # }

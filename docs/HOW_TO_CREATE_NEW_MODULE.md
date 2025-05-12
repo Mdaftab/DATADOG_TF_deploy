@@ -1,104 +1,90 @@
 # How to Create a New Datadog Module
 
-This guide walks through the process of creating a new module for a Datadog resource type.
+This guide walks through the process of creating a new module for a Datadog resource type in this project skeleton.
 
-## Step 1: Start with the Template
+## Module Structure
 
-Copy the template directory to create a new module:
+Each new module should follow this standard structure:
 
-```bash
-cp -r templates/new_module_template modules/your_module_name
+```
+modules/
+└── your_module_name/
+    ├── main.tf           # Main Terraform configuration for the resource
+    ├── variables.tf      # Input variables for the module
+    ├── outputs.tf        # Output values from the module
+    ├── README.md         # Module-specific documentation
+    └── templates/        # Optional directory for message or other templates
+        └── your_template.tpl
 ```
 
-## Step 2: Update the Resource Type
+## Development Workflow
 
-In `main.tf`, replace `datadog_RESOURCE_TYPE` with the appropriate Datadog resource, such as:
-- `datadog_dashboard`
-- `datadog_monitor`
-- `datadog_synthetics_test`
-- `datadog_service_level_objective`
-- `datadog_logs_custom_pipeline`
+Follow these steps to create a new module:
 
-## Step 3: Define Required Parameters
+1.  **Identify the Resource Type:** Determine which Datadog resource type you want to support (e.g., `datadog_synthetics_test`, `datadog_service_level_objective`). Refer to the [Datadog Terraform Provider documentation](https://registry.terraform.io/providers/DataDog/datadog/latest/docs).
 
-Update `variables.tf` with:
-- Required parameters for the resource
-- Optional parameters with sensible defaults
-- Validation rules for parameters
-- Descriptions for all variables
+2.  **Create the Module Directory and Files:**
+    ```bash
+    mkdir -p modules/your_module_name
+    touch modules/your_module_name/{main.tf,variables.tf,outputs.tf,README.md}
+    # If needed, create a templates directory
+    # mkdir modules/your_module_name/templates
+    ```
 
-## Step 4: Define Outputs
+3.  **Implement the Module Logic (`main.tf`):**
+    -   Define the `datadog_RESOURCE_TYPE` resource.
+    -   Use variables (`var.variable_name`) for all configurable parameters.
+    -   Implement `for_each` if the module is designed to create multiple resources from a map input (similar to `modules/multiple_monitors`).
+    -   Include proper resource naming following the `[env]-[team]-[service]-[resource-type]` convention.
+    -   Use dynamic blocks for complex nested structures (like dashboard widgets or monitor thresholds).
+    -   Ensure proper tagging, potentially merging global tags with resource-specific tags.
 
-Update `outputs.tf` with:
-- Essential resource identifiers (id, name)
-- Any useful resource-specific outputs
-- Links or URLs to view the resource in Datadog UI
+4.  **Define Input Variables (`variables.tf`):**
+    -   Define all input variables the module will accept.
+    -   Include clear `description` for each variable.
+    -   Specify the `type` of the variable.
+    -   Set `default` values for optional parameters.
+    -   Add `validation` rules to enforce expected input formats or values.
 
-## Step 5: Write Documentation
+5.  **Define Output Values (`outputs.tf`):**
+    -   Define the values that the module will output.
+    -   Typically include the resource `id` and `name`.
+    -   Include any other useful attributes or generated values.
+    -   Consider including a URL to view the resource in the Datadog UI if applicable.
 
-Update `README.md` with:
-- Description of the module
-- Usage examples
-- Complete input/output documentation
-- Resource-specific information
-- Common configurations or patterns
+6.  **Write Module Documentation (`README.md`):**
+    -   Provide a clear description of what the module does.
+    -   Include usage examples showing how to call the module from a `.tfvars` file or another Terraform configuration.
+    -   Document all input variables with their descriptions, types, defaults, and whether they are required.
+    -   Document all output values.
+    -   Include any resource-specific information or common configurations.
 
-## Step 6: Create Example Configuration
+7.  **Create Example Configuration (`examples/your_module_name/`):**
+    -   Create a directory for your example: `mkdir -p examples/your_module_name`.
+    -   Create example files (e.g., `main.tf`, `variables.tf`, `outputs.tf`, `README.md`) that demonstrate how to use your new module. This example should be runnable independently or easily adaptable.
 
-Create an example in the `examples` directory:
+8.  **Update Root `main.tf`:**
+    -   Add a module block in the root `main.tf` to include your new module, referencing its source path (`./modules/your_module_name`).
+    -   Map the relevant variable from the environment `.tfvars` files (e.g., `var.your_resource_type`) to the module's input variable.
 
-```bash
-mkdir -p examples/your_module_name
-```
+9.  **Update Root `variables.tf`:**
+    -   Add a variable definition in the root `variables.tf` for the new resource type (e.g., `variable "your_resource_type" { type = any; description = "Map of your resource type to create"; default = {} }`).
 
-Create example files:
-- `main.tf` - Example module usage
-- `variables.tf` - Variables with default values
-- `outputs.tf` - Example outputs
-- `README.md` - Documentation specific to the example
+10. **Update Documentation:**
+    -   Update the main `README.md` (Project Structure, Extending the Project sections).
+    -   Update the `docs/USAGE_GUIDE.md` to mention the new resource type and how to define it in environment `.tfvars` files.
+    -   Update the CLI tool documentation if it should support generating templates for this new resource type.
 
-## Step 7: Test the Module
+11. **Test the Module:**
+    -   Use your example configuration to test the module.
+    -   Run `terraform init`, `terraform validate`, `terraform plan`, and `terraform apply` (in a safe environment) to ensure the module works as expected.
 
-Test the module with the example configuration:
+## Best Practices for Module Development
 
-```bash
-cd examples/your_module_name
-terraform init
-terraform validate
-terraform plan
-```
+-   **Reusability:** Design modules to be as generic and reusable as possible.
+-   **Input Variables:** Expose all necessary configurations as input variables. Avoid hardcoding values within the module.
+-   **Output Values:** Provide useful output values that can be referenced by other modules or configurations.
+-   **Versioning:** Consider versioning your modules if they are intended for use across multiple projects or teams.
+-   **Documentation:** Comprehensive documentation is key for others to understand and use your module effectively.
 
-## Step 8: Add to CLAUDE.md
-
-Update the CLAUDE.md file to document the new module:
-
-```markdown
-## modules/your_module_name
-
-This module provides a template for deploying {resource type} in Datadog.
-
-Commands:
-- `terraform apply -var-file=values.tfvars` - Deploy the resource
-```
-
-## Tips for Specific Resource Types
-
-### Dashboards
-- Use dynamic blocks for widgets
-- Consider templating for repeated elements
-- Allow for flexible layout configurations
-
-### Monitors
-- Include sensible defaults for thresholds
-- Provide templates for common notification messages
-- Include examples of different evaluation types
-
-### Synthetics Tests
-- Include assertion examples
-- Document step configurations
-- Include location strategy guidance
-
-### SLOs
-- Document different SLI types
-- Include target and window configurations
-- Show examples of different time windows
+By following these steps and best practices, you can successfully extend this project skeleton to support additional Datadog resource types.

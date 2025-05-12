@@ -1,392 +1,202 @@
-# Datadog Terraform Deployment Project
+# Datadog Terraform Deployment Skeleton
 
-A developer-friendly Terraform project for deploying Datadog resources using YAML configuration. This project simplifies the process of setting up Datadog monitoring by providing pre-made templates and an easy-to-use CLI tool, designed specifically for DevOps and SRE professionals.
+This project provides a best-practice skeleton for deploying Datadog resources using Terraform. It's designed for DevOps and SRE professionals to quickly set up and extend Datadog monitoring and dashboards in their environments.
 
-## 🌟 Key Features
+## Project Goal
 
-- 🚀 **Simple YAML Configuration**: Define your monitoring resources using simple YAML files
-- 🛠️ **CLI Tool**: Easy-to-use command line interface for managing resources
-- 📚 **Pre-made Templates**: Ready-to-use templates for common monitoring scenarios
-- 🔄 **Environment Support**: Separate configurations for different environments
-- ✅ **Validation**: Built-in configuration validation
-- 📊 **Preview Changes**: See what changes will be made before applying
+To offer a clear, modular, and easy-to-use foundation for managing Datadog resources with Terraform, promoting best practices and enabling teams to customize and expand for their specific needs.
 
-## 📋 Table of Contents
+## Key Features
 
-- [Architecture Overview](#architecture-overview)
-- [Project Structure](#project-structure)
-- [Quick Start Guide](#quick-start-guide)
-- [Workflow](#workflow)
-- [Available Templates](#available-templates)
-- [CLI Reference](#cli-reference)
-- [Best Practices](#best-practices)
-- [Configuration Examples](#configuration-examples)
-- [Developer Guidelines](#developer-guidelines)
-- [Contributing](#contributing)
-- [Support](#support)
-- [License](#license)
+- **Modular Terraform:** Organized modules for different Datadog resource types.
+- **Environment Support:** Easily manage configurations for multiple environments (dev, staging, prod).
+- **CLI Tooling:** Helper scripts for common tasks like creating resource configurations.
+- **Best Practices:** Designed with recommended Datadog and Terraform practices in mind.
 
-## 🏗️ Architecture Overview
+## Getting Started: A Step-by-Step Guide
 
-The project uses a modular approach to manage Datadog resources through Terraform, with YAML as the primary configuration interface.
+Follow these steps to set up and use this project:
 
-```mermaid
-graph TD
-    A[YAML Configuration] -->|Processed by| B[CLI Tool]
-    B -->|Generates| C[Terraform Code]
-    C -->|Creates| D[Datadog Resources]
-    E[Templates] -->|Used by| A
-    F[Modules] -->|Referenced by| C
-    G[Environments] -->|Configure| A
+### Step 1: Clone the Repository
 
-    classDef config fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef process fill:#bbf,stroke:#333,stroke-width:2px;
-    classDef resource fill:#bfb,stroke:#333,stroke-width:2px;
-    classDef template fill:#fbb,stroke:#333,stroke-width:2px;
-    
-    class A,G config;
-    class B,C process;
-    class D resource;
-    class E,F template;
-```
+Start by cloning the project to your local machine:
 
-## 📁 Project Structure
-
-```shell
-project/
-├── modules/                    # Terraform modules
-│   ├── monitor/               # Monitor module
-│   ├── monitors/              # Multiple monitors module
-│   └── dashboard/             # Dashboard module
-├── config/                    # YAML configurations
-│   └── developer-input.yaml   # Example developer input
-├── docs/                      # Documentation
-│   ├── HOW_TO_CREATE_NEW_MODULE.md
-│   └── USAGE_GUIDE.md
-├── environments/              # Environment-specific configurations
-│   ├── dev/                   # Development environment
-│   └── prod/                  # Production environment
-├── examples/                  # Example configurations
-│   ├── templates/             # Pre-made templates
-│   │   ├── api-monitoring.yaml
-│   │   └── database-monitoring.yaml
-│   ├── dashboard/             # Dashboard examples
-│   └── monitor/               # Monitor examples
-├── scripts/                   # Helper scripts
-│   ├── create-resource.sh     # Resource creation script
-│   └── datadog-tf-cli.py      # CLI tool
-├── main.tf                    # Main Terraform configuration
-├── variables.tf               # Global variables
-└── terraform.tfvars.example   # Example Terraform variables
-```
-
-## 🚀 Quick Start Guide
-
-### Prerequisites
-
-- Terraform ≥ 1.0.0
-- Python 3.6+
-- Datadog API and App keys
-
-### Installation
-
-1. **Clone the repository**
-
-```shell
+```bash
 git clone https://github.com/yourusername/datadog-tf-deploy.git
 cd datadog-tf-deploy
 ```
 
-2. **Install dependencies**
+### Step 2: Install Prerequisites
 
-```shell
-# Install required Python packages
-pip install click pyyaml
+Ensure you have the necessary tools installed:
 
-# Initialize Terraform
+-   **Terraform:** Install Terraform (version 1.0.0 or later). Follow the official [Terraform installation guide](https://developer.hashicorp.com/terraform/downloads).
+-   **Python 3.6+:** Install Python 3.6 or later.
+-   **Python Dependencies:** Install the required Python packages for the CLI tool:
+    ```bash
+    pip install click pyyaml
+    ```
+
+### Step 3: Configure Datadog Credentials
+
+You need to provide your Datadog API and Application keys.
+
+1.  Copy the example Terraform variables file:
+    ```bash
+    cp terraform.tfvars.example terraform.tfvars
+    ```
+2.  Edit `terraform.tfvars` and replace the placeholder values with your actual Datadog keys and API URL:
+    ```hcl
+    datadog_api_key = "your_api_key_here"
+    datadog_app_key = "your_app_key_here"
+    datadog_api_url = "https://api.datadoghq.com/" # Or your specific Datadog site URL
+    ```
+    **Note:** Treat your API and App keys as sensitive information. Do not commit `terraform.tfvars` to version control if it contains secrets. Use a secrets management system or environment variables in production.
+
+### Step 4: Initialize Terraform
+
+Navigate to the project root directory and initialize Terraform. This downloads the necessary provider plugins.
+
+```bash
 terraform init
 ```
 
-3. **Configure Datadog credentials**
+### Step 5: Define Your Datadog Resources
 
-Create a `terraform.tfvars` file with your Datadog API credentials:
+Resource configurations are defined in `.tfvars` files, typically organized by environment in the `environments/` directory.
 
-```hcl
-datadog_api_key = "your-api-key"
-datadog_app_key = "your-app-key"
-datadog_api_url = "https://api.datadoghq.com/"
+1.  Choose an environment (e.g., `dev` or `prod`).
+2.  Edit the corresponding `terraform.tfvars` file (e.g., `environments/dev/terraform.tfvars`).
+3.  Define your Datadog resources (monitors, dashboards, SLOs, etc.) using the variables provided by the modules. Refer to the examples in the `examples/` directory and the module documentation for structure and available parameters.
+
+    Example snippet from `environments/dev/terraform.tfvars`:
+    ```hcl
+    environment = "dev"
+
+    global_tags = {
+      managed_by = "terraform"
+      team       = "platform"
+      env        = "dev"
+    }
+
+    monitors = {
+      api_latency = {
+        name    = "DEV - High API Latency"
+        type    = "metric alert"
+        message = "Service latency is above threshold in dev. @slack-dev-alerts"
+        query   = "avg(last_5m):avg:service.latency{env:dev,service:api} > 500"
+        thresholds = {
+          critical          = "500"
+          critical_recovery = "400"
+        }
+        notify_no_data = false
+        tags = ["service:api"]
+      }
+    }
+
+    dashboards = {
+      service_overview = {
+        title       = "DEV - Service Overview Dashboard"
+        description = "Key metrics for our service in development"
+        widgets = [
+          {
+            definition_type = "timeseries"
+            title = "Service Latency"
+            request = {
+              query = "avg:service.latency{env:dev} by {service}"
+              display_type = "line"
+            }
+            markers = [
+              {
+                display_type = "error dashed"
+                value = "500"
+                label = "SLA Threshold"
+              }
+            ]
+          }
+        ]
+        tags = ["service:api"]
+      }
+    }
+    ```
+
+### Step 6: Validate Your Configuration
+
+Before deploying, validate your Terraform configuration:
+
+```bash
+terraform validate
 ```
 
-### Creating Your First Monitor
+This checks for syntax errors and consistency.
 
-1. **Generate a template**
+### Step 7: Preview Changes (Terraform Plan)
+
+Generate a plan to see what actions Terraform will take without applying them:
+
+```bash
+terraform plan -var-file=environments/dev/terraform.tfvars
+```
+
+Replace `environments/dev/terraform.tfvars` with the path to your environment's tfvars file. Review the output carefully to understand the proposed changes.
+
+### Step 8: Deploy Resources (Terraform Apply)
+
+If the plan looks correct, apply the changes to deploy your Datadog resources:
+
+```bash
+terraform apply -var-file=environments/dev/terraform.tfvars
+```
+
+Again, replace with your environment's tfvars file. Terraform will prompt for confirmation before proceeding (unless you use `-auto-approve`).
+
+## Project Structure
 
 ```shell
-# Generate an API monitoring template
-python scripts/datadog-tf-cli.py template monitor api-monitor.yaml
+project/
+├── modules/                    # Reusable Terraform modules for Datadog resources
+│   ├── single_monitor/        # Module for creating a single Datadog monitor
+│   ├── multiple_monitors/     # Module for creating multiple Datadog monitors from a map
+│   ├── dashboard/             # Module for creating Datadog dashboards
+│   └── slos/                  # Module for creating Datadog SLOs
+├── environments/              # Environment-specific variable definitions
+│   ├── dev/                   # Development environment variables
+│   │   └── terraform.tfvars
+│   └── prod/                  # Production environment variables
+│       └── terraform.tfvars
+├── examples/                  # Example configurations using the modules
+│   ├── templates/             # Pre-defined YAML templates (used by CLI tool)
+│   │   ├── api-monitoring.yaml
+│   │   └── database-monitoring.yaml
+│   │   └── microservice-monitoring.yaml
+│   ├── dashboard/             # Example of using the dashboard module
+│   └── monitor/               # Example of using the single_monitor module
+├── scripts/                   # Helper scripts
+│   ├── create-resource.sh     # Script to help create new resource configurations
+│   └── datadog-tf-cli.py      # CLI tool for template generation, validation, etc.
+├── docs/                      # Project documentation
+│   ├── HOW_TO_CREATE_NEW_MODULE.md # Guide for adding new module types
+│   └── USAGE_GUIDE.md         # Detailed usage instructions
+├── main.tf                    # Main Terraform configuration, references modules
+├── variables.tf               # Global input variables for the root module
+├── terraform.tfvars.example   # Example for root-level variables (like API keys)
+└── .gitignore                 # Specifies intentionally untracked files
 ```
 
-2. **Customize the configuration**
+## Extending the Project
 
-```yaml
-# api-monitor.yaml
-monitors:
-  api_latency:
-    name: "API Latency Monitor"
-    type: "metric alert"
-    query: "avg(last_5m):avg:trace.http.request.duration{service:my-api} > 1000"
-    message: "API latency is above threshold of 1000ms"
-    threshold: 1000
-    tags:
-      - "service:my-api"
-      - "env:prod"
-      - "team:backend"
-```
+-   **Add a New Resource Type:** Follow the guide in `docs/HOW_TO_CREATE_NEW_MODULE.md` to create a new module and integrate it.
+-   **Create New Examples/Templates:** Add examples in the `examples/` directory to demonstrate new patterns or resource types.
+-   **Enhance CLI Tool:** Modify scripts in `scripts/` to add new functionality.
 
-3. **Validate your configuration**
+## Best Practices
 
-```shell
-python scripts/datadog-tf-cli.py validate api-monitor.yaml
-```
+Refer to the `.clinerules/datadog-terraform-best-practices.md` file for detailed guidelines on naming conventions, tagging, variable usage, and more.
 
-4. **Preview and deploy**
+## Contributing
 
-```shell
-# Preview changes
-python scripts/datadog-tf-cli.py plan api-monitor.yaml
+Contributions are welcome! Please refer to the `CONTRIBUTING.md` file (if it exists) or the general guidelines for contributing to open-source projects.
 
-# Apply changes
-python scripts/datadog-tf-cli.py apply api-monitor.yaml
-```
+## License
 
-## 🔄 Workflow
-
-The typical workflow for deploying Datadog resources:
-
-```mermaid
-graph LR
-    A[Select Template] -->|Customize| B[Edit YAML]
-    B -->|Validate| C[Run CLI Validate]
-    C -->|Preview| D[Run CLI Plan]
-    D -->|Deploy| E[Run CLI Apply]
-    E -->|Monitor| F[Datadog Dashboard]
-
-    classDef start fill:#f96,stroke:#333,stroke-width:2px;
-    classDef process fill:#bbf,stroke:#333,stroke-width:2px;
-    classDef end fill:#9f6,stroke:#333,stroke-width:2px;
-    
-    class A start;
-    class B,C,D process;
-    class E,F end;
-```
-
-### Team Collaboration Workflow
-
-```mermaid
-graph LR
-    Dev[Developer] -->|1. Create YAML Config| Ops[DevOps/SRE]
-    Ops -->|2. Review & Approve| Dev
-    Dev -->|3. Deploy Resources| Ops
-    Ops -->|4. Process YAML| Infra[Infrastructure]
-    Infra -->|5. Generate TF| Ops
-    Ops -->|6. Apply Changes| Infra
-    Ops -->|7. Complete| Dev
-
-    classDef default fill:#2b2b2b,stroke:#666,color:#fff
-    classDef actor fill:#3b4252,stroke:#81a1c1,color:#fff
-    class Dev,Ops,Infra actor
-```
-
-## 📚 Available Templates
-
-We provide templates for common monitoring scenarios:
-
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| **API Monitoring** | Monitors for API endpoints | Latency, error rates, and endpoint performance |
-| **Database Monitoring** | Monitors for database systems | Connection pools, query performance, and disk usage |
-| **Application Monitoring** | Monitors for application health | Memory usage, CPU utilization, and error rates |
-| **Infrastructure Monitoring** | Monitors for infrastructure | Host metrics, container health, and network performance |
-
-## 🛠️ CLI Reference
-
-The CLI tool provides several commands to manage your Datadog resources:
-
-```shell
-# Generate a template
-python scripts/datadog-tf-cli.py template <resource_type> <output_file>
-
-# Validate configuration
-python scripts/datadog-tf-cli.py validate <config_file>
-
-# Preview changes
-python scripts/datadog-tf-cli.py plan <config_file>
-
-# Apply changes
-python scripts/datadog-tf-cli.py apply <config_file>
-```
-
-## 📋 Best Practices
-
-### Resource Configuration
-
-- Use descriptive names
-- Follow a consistent naming convention: `[env]-[team]-[service]-[resource-type]`
-- Include environment and service information
-
-### Tag Standards
-
-- Always include service, environment, and team tags
-- Use consistent tag formats
-- Follow your organization's tagging policy
-
-### Alert Management
-
-- Start with conservative thresholds
-- Adjust based on historical data
-- Include proper alert messages with clear actions
-
-### Code Management
-
-- Version control your configurations
-- Review changes before applying
-- Maintain separate environments
-
-## 📝 Configuration Examples
-
-### Monitor Setup
-
-```yaml
-monitors:
-  api_latency:
-    name: "API Latency Monitor"
-    type: "metric alert"
-    query: "avg(last_5m):avg:trace.http.request.duration{service:my-api} > 1000"
-    message: |
-      API latency is above threshold of 1000ms
-      @slack-your-channel @pagerduty-service
-    threshold: 1000
-    tags:
-      - "service:my-api"
-      - "env:prod"
-      - "team:backend"
-```
-
-### Dashboard Setup
-
-```yaml
-dashboards:
-  service_dashboard:
-    title: "Service Dashboard"
-    description: "Overview of service performance"
-    widgets:
-      - type: "timeseries"
-        title: "CPU Usage"
-        query: "avg:system.cpu.user{service:my-app}"
-      - type: "timeseries"
-        title: "Memory Usage"
-        query: "avg:system.mem.used{service:my-app}"
-```
-
-### SLO Setup
-
-```yaml
-slos:
-  service_availability:
-    name: "Service Availability"
-    target: 99.9
-    timeframe: "30d"
-    tags:
-      - "service:my-app"
-```
-
-## 👨‍💻 Developer Guidelines
-
-### Module Relationships
-
-```mermaid
-graph TD
-    A[Main Module] -->|Uses| B[Monitor Module]
-    A -->|Uses| C[Dashboard Module]
-    A -->|Uses| D[Monitors Module]
-    B -->|Creates| E[Single Datadog Monitor]
-    C -->|Creates| F[Datadog Dashboards]
-    D -->|Creates| G[Multiple Datadog Monitors]
-
-    classDef module fill:#bbf,stroke:#333,stroke-width:2px;
-    classDef resource fill:#bfb,stroke:#333,stroke-width:2px;
-    
-    class A,B,C,D module;
-    class E,F,G resource;
-```
-
-### Module Setup
-
-1. Create new template in appropriate module
-2. Add validation rules in variables.tf
-3. Update documentation
-4. Add example configuration
-
-### Best Practices
-
-- Use consistent naming conventions
-- Include proper validation
-- Add comprehensive documentation
-- Include example configurations
-
-### Repository Tasks
-
-1. **Regular Updates**
-   - Review and update templates
-   - Update documentation
-   - Monitor for deprecated features
-   - Review and update thresholds
-
-2. **Repository Management**
-   - Regular commits
-   - Pull request reviews
-   - Release management
-   - Tag releases
-
-## 🤝 Contributing
-
-We welcome contributions to improve this project!
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-Please see our [Contributing Guidelines](CONTRIBUTING.md) for more details.
-
-## 🆘 Support
-
-For support, please:
-
-1. Check the examples directory
-2. Review the documentation
-3. [Create an issue](https://github.com/yourusername/datadog-tf-deploy/issues)
-
-## 📄 License
-
-MIT License
-
-Copyright (c) 2024
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+This project is licensed under the MIT License. See the `LICENSE` file for details.

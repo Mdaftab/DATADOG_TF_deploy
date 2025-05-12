@@ -67,7 +67,6 @@ create_monitor() {
 EOF
 }
 
-
 # Main logic
 echo -e "${BLUE}Creating a new $RESOURCE_TYPE resource named '$RESOURCE_NAME'...${NC}"
 
